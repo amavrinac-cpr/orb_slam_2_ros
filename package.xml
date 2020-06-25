@@ -18,6 +18,8 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>dynamic_reconfigure</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>cpr_slam_msgs</build_depend>
+  <build_depend>map_database</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
@@ -27,6 +29,8 @@
   <run_depend>sensor_msgs</run_depend>
   <run_depend>dynamic_reconfigure</run_depend>
   <run_depend>message_runtime</run_depend>
+  <run_depend>cpr_slam_msgs</run_depend>
+  <run_depend>map_database</run_depend>
   <export>
 
   </export>

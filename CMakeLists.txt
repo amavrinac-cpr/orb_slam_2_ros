@@ -26,6 +26,8 @@ tf
 sensor_msgs
 dynamic_reconfigure
 message_generation
+cpr_slam_msgs
+map_database
 )
 
 find_package(OpenCV 4.0 QUIET)
@@ -118,7 +120,7 @@ target_link_libraries(${PROJECT_NAME}
 ${LIBS_ORBSLAM}
 )
 
-# map serialization addition - library boost serialization 
+# map serialization addition - library boost serialization
 message(STATUS "Compile With map save/load function")
 find_library(BOOST_SERIALIZATION boost_serialization)
 if (NOT BOOST_SERIALIZATION)

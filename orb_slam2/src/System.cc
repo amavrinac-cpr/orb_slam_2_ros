@@ -493,6 +493,9 @@ std::vector<MapPoint*> System::GetAllMapPoints() {
   return mpMap->GetAllMapPoints();
 }
 
+std::vector<KeyFrame*> System::GetAllKeyFrames() {
+  return mpMap->GetAllKeyFrames();
+}
 
 bool System::SetCallStackSize (const rlim_t kNewStackSize) {
     struct rlimit rlimit;
@@ -602,7 +605,7 @@ bool System::SaveMap(const string &filename) {
 }
 
 bool System::LoadMap(const string &filename) {
-    
+
     unique_lock<mutex>MapPointGlobal(MapPoint::mGlobalMutex);
     std::ifstream in(filename, std::ios_base::binary);
     if (!in) {
@@ -631,19 +634,19 @@ bool System::LoadMap(const string &filename) {
 
         it->SetORBvocabulary(mpVocabulary);
         it->ComputeBoW();
-        
+
         if (it->mnFrameId > mnFrameId) {
             mnFrameId = it->mnFrameId;
         }
     }
 
     Frame::nNextId = mnFrameId;
-    
+
     std::cout << " ... done" << std::endl;
     in.close();
 
     SetCallStackSize(kDefaultCallStackSize);
-    
+
     return true;
 }
 

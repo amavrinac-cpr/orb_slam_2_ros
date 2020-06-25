@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <map_database/vertex_types.h>
+
 Node::Node (ORB_SLAM2::System::eSensor sensor, ros::NodeHandle &node_handle, image_transport::ImageTransport &image_transport) :  image_transport_(image_transport) {
   name_of_node_ = ros::this_node::getName();
   node_handle_ = node_handle;
@@ -22,6 +24,7 @@ Node::~Node () {
 
 void Node::Init () {
   //static parameters
+  node_handle_.param(name_of_node_+ "/publish_covisibility", publish_covisibility_param_, true);
   node_handle_.param(name_of_node_+ "/publish_pointcloud", publish_pointcloud_param_, true);
   node_handle_.param(name_of_node_+ "/publish_pose", publish_pose_param_, true);
   node_handle_.param(name_of_node_+ "/publish_tf", publish_tf_param_, true);
@@ -49,6 +52,11 @@ void Node::Init () {
     map_points_publisher_ = node_handle_.advertise<sensor_msgs::PointCloud2> (name_of_node_+"/map_points", 1);
   }
 
+  if (publish_covisibility_param_) {
+    covisibility_graph_publisher_ = node_handle_.advertise<cpr_slam_msgs::Graph> (name_of_node_+"/covisibility", 1);
+    covisibility_max_weight_ = static_cast<float>(parameters.nFeatures);
+  }
+
   // Enable publishing camera's pose as PoseStamped message
   if (publish_pose_param_) {
     pose_publisher_ = node_handle_.advertise<geometry_msgs::PoseStamped> (name_of_node_+"/pose", 1);
@@ -73,6 +81,41 @@ void Node::Update () {
     PublishMapPoints (orb_slam_->GetAllMapPoints());
   }
 
+  if (publish_covisibility_param_) {
+    PublishCovisibilityGraph (orb_slam_->GetAllKeyFrames());
+  }
+}
+
+
+void Node::PublishCovisibilityGraph (std::vector<ORB_SLAM2::KeyFrame*> keyframes) {
+  cpr_slam_msgs::Graph graph;
+  graph.header.frame_id = "map";
+
+  graph.vertices.reserve(keyframes.size());
+  for (const auto keyframe : keyframes)
+  {
+    // add a vertex for the keyframe
+    cpr_slam_msgs::Vertex vertex;
+    vertex.vertex.id = keyframe->mnId;
+    vertex.vertex.type = map_database::vertex_type::IMAGE;
+    tf::poseTFToMsg(TransformFromMat(keyframe->GetPose()), vertex.vertex.pose.pose);
+    graph.vertices.push_back(vertex);
+
+    // add edges for the covisibility links
+    int i = 0;
+    for (const auto connected : keyframe->GetConnectedKeyFrames())
+    {
+      cpr_slam_msgs::Edge edge;
+      edge.dest_id = connected->mnId;
+      edge.src_id = keyframe->mnId;
+      edge.gen_id = "COVISIBILITY";
+      edge.e_id = i++;
+      edge.confidence = keyframe->GetWeight(connected) / covisibility_max_weight_;
+      graph.edges.push_back(edge);
+    }
+  }
+
+  covisibility_graph_publisher_.publish (graph);
 }
 
 

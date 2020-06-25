@@ -41,6 +41,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <cpr_slam_msgs/Graph.h>
 
 #include "System.h"
 
@@ -61,6 +62,7 @@ class Node
     std::string camera_info_topic_;
 
   private:
+    void PublishCovisibilityGraph (std::vector<ORB_SLAM2::KeyFrame*> keyframes);
     void PublishMapPoints (std::vector<ORB_SLAM2::MapPoint*> map_points);
     void PublishPositionAsTransform (cv::Mat position);
     void PublishPositionAsPoseStamped(cv::Mat position);
@@ -75,6 +77,7 @@ class Node
     dynamic_reconfigure::Server<orb_slam2_ros::dynamic_reconfigureConfig> dynamic_param_server_;
 
     image_transport::Publisher rendered_image_publisher_;
+    ros::Publisher covisibility_graph_publisher_;
     ros::Publisher map_points_publisher_;
     ros::Publisher pose_publisher_;
 
@@ -91,10 +94,12 @@ class Node
     std::string map_file_name_param_;
     std::string voc_file_name_param_;
     bool load_map_param_;
+    bool publish_covisibility_param_;
     bool publish_pointcloud_param_;
     bool publish_tf_param_;
     bool publish_pose_param_;
     int min_observations_per_point_;
+    float covisibility_max_weight_;
 };
 
 #endif //ORBSLAM2_ROS_NODE_H_
